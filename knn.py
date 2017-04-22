@@ -68,7 +68,7 @@ def main():
     k = 7
     accuracy = 0
     vp = 0
-    trainning = 105
+    trainning = 100
     tests = 150 - trainning
 
     matrix = [[0, 0, 0],
