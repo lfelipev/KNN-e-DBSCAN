@@ -10,11 +10,6 @@ class flower():
         self.petal_w = petal_w
         self.type = type
 
-class tuple():
-    def __init__(self, dist, index):
-        self.dist = dist
-        self.index = index
-
 def euclidian(subject1, subject2):
     sum = pow(subject1.sepal_l - subject2.sepal_l, 2) + \
             pow(subject1.sepal_w - subject2.sepal_w, 2) + \
@@ -30,8 +25,6 @@ def classify(subjects, subject, k):
         if k <= 0:
             k = 1
 
-    dist_subjects = set()
-
     index = 0
 
     dist_tuple = []
@@ -39,8 +32,7 @@ def classify(subjects, subject, k):
     for i in subjects:
         dist = euclidian(i, subject)
         dist_tuple.append((dist, index))
-        sorted(dist_tuple, key=lambda dist: dist[1])
-        dist_subjects.add(tuple(dist, index))
+        dist_tuple.sort(key=lambda tup: tup[0])
         index = index + 1
 
     types = [0,0,0]
@@ -73,10 +65,15 @@ def classify(subjects, subject, k):
 def main():
     subjects = list()
     trainning_subjects = list()
-    k = 3
+    k = 7
     accuracy = 0
-    trainning = 50
+    vp = 0
+    trainning = 105
     tests = 150 - trainning
+
+    matrix = [[0, 0, 0],
+              [0, 0, 0],
+              [0, 0, 0]]
 
     with open('iris.csv', 'r') as csvfile:
         lines = csv.reader(csvfile)
@@ -88,20 +85,63 @@ def main():
     for i in range(0,trainning):
         trainning_subjects.append(subjects[i])
 
-    for j in range(0, tests):
+    for j in range(trainning, 150):
         subject = subjects[j]
 
         type = classify(trainning_subjects, subject, k)
 
         if subject.type == type:
-            accuracy = accuracy + 1
+            vp = vp + 1
+            if type == "Iris-setosa":
+                matrix[0][0] = matrix[0][0] + 1
+            elif type == "Iris-versicolor":
+                matrix[1][1] = matrix[1][1] + 1
+            else:
+                matrix[2][2] = matrix[2][2] + 1
+        elif subject.type == "Iris-setosa":
+            if type == "Iris-versicolor":
+                matrix[0][1] = matrix[0][1] + 1
+            else:
+                matrix[0][2] = matrix[0][2] + 1
+        elif subject.type == "Iris-versicolor":
+            if type == "Iris-setosa":
+                matrix[1][0] = matrix[1][0] + 1
+            else:
+                matrix[1][2] = matrix[1][2] + 1
+        else:
+            if type == "Iris-setosa":
+                matrix[2][0] = matrix[2][0] + 1
+            else:
+                matrix[2][1] = matrix[2][1] + 1
 
-        print('Classe esperada: ' + subjects[j].type)
-        print('Classe obtida: ' + type)
+    print("Matriz de Confusão")
+    print("   A,  B, C")
+    print("A {}".format(matrix[0]))
+    print("B {}".format(matrix[1]))
+    print("C {}".format(matrix[2]))
 
-    print('Acertos {} em {} testes.'.format(accuracy, trainning))
-    accuracy = accuracy/float(trainning) * 100
+    #True Positive Rate
+    #False Negative Rate
+    TPRA = matrix[0][0]/(matrix[0][0] + matrix[0][1] + matrix[0][2]) *100
+    TPRB = matrix[1][1] / (matrix[1][0] + matrix[1][1] + matrix[1][2]) * 100
+    TPRC = matrix[2][2] / (matrix[2][0] + matrix[2][1] + matrix[2][2]) * 100
+    FNRA = matrix[0][0] / (matrix[0][0] + matrix[1][0] + matrix[2][0]) * 100
+    FNRB = matrix[1][1] / (matrix[0][1] + matrix[1][1] + matrix[2][1]) * 100
+    FNRC = matrix[0][0] / (matrix[0][2] + matrix[2][1] + matrix[2][2]) * 100
+    print("--")
+    print("Precision(A): {0:.2f}%".format(TPRA))
+    print("Precision(B): {0:.2f}%".format(TPRB))
+    print("Precision(C): {0:.2f}%".format(TPRC))
+    print("--")
+    print("Recall(A): {0:.2f}%".format(FNRA))
+    print("Recall(B): {0:.2f}%".format(FNRB))
+    print("Recall(C): {0:.2f}%".format(FNRC))
+    print("--")
+    print('Acertos {} em {} testes.'.format(vp, tests))
+    accuracy = (vp/float(tests)) * 100
+    errors = (tests - vp)/float(tests) * 100
     print('Accuracy: {0:.2f}%'.format(accuracy))
+    print('Taxa de erro: {0:.2f}%'.format(errors))
 
 if __name__ == '__main__':
     main()
